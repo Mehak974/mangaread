@@ -6,7 +6,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import MobileNav from "@/components/MobileNav";
 import InkDots from "@/components/InkDots";
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import JsonLd from "@/components/JsonLd";
 import MaintenanceGuard from "@/components/MaintenanceGuard";
