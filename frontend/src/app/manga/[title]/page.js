@@ -15,7 +15,7 @@ import MangaNote from "@/components/MangaNote";
 import { MANGA, abbr, COVER_GRADS } from "@/data/mockData";
 import { proxyImage } from "@/utils/api";
 
-const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.mangaread.pro";
 
 const SINGLE_MANGA_QUERY = `
   query ($id: Int) {

@@ -7,7 +7,7 @@
 export const API_BASE =
   process.env.NEXT_PUBLIC_SCRAPER_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:3001";
+  "https://api.mangaread.pro";
 
 export function proxyImage(url, width = null) {
   if (!url || url.startsWith('/') || url.includes('/api/proxy-image')) return url;

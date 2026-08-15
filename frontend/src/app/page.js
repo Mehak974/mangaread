@@ -13,7 +13,7 @@ import DailySchedule from "@/components/DailySchedule";
 import CategorySection from "@/components/CategorySection";
 import TrendingPopularSection from "@/components/TrendingPopularSection";
 
-const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.mangaread.pro";
 
 export const revalidate = 43200; // Revalidate every 12 hours (ISR) — balances freshness vs cold-start LCP
 
