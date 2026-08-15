@@ -116,7 +116,6 @@ export const AppProvider = ({ children }) => {
         if (data?.user) {
           setUser(data.user);
           setIsLoggedIn(true);
-          // If the backend has history, we can load it. For now we load local state.
           loadLocalState(data.user.id);
           fetchLibraries();
         } else {
