@@ -1,9 +1,22 @@
 require('dotenv').config();
 const { Pool } = require('pg');
 
+function normalizeNeonUrl(url) {
+  const u = new URL(url);
+  const params = new URLSearchParams(u.search);
+  if (!params.has('pgbouncer')) {
+    params.set('pgbouncer', 'true');
+  }
+  if (params.get('sslmode') === 'require') {
+    params.set('sslmode', 'verify-full');
+  }
+  u.search = params.toString();
+  return u.toString();
+}
+
 const pool = new Pool(
   process.env.DATABASE_URL
-    ? { connectionString: process.env.DATABASE_URL }
+    ? { connectionString: normalizeNeonUrl(process.env.DATABASE_URL) }
     : {
         host: process.env.PGHOST || 'localhost',
         user: process.env.PGUSER || 'postgres',
@@ -18,7 +31,7 @@ async function initDB() {
   try {
     console.log('Connecting to PostgreSQL database...');
     if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('neon.tech') && !process.env.DATABASE_URL.includes('pgbouncer=true')) {
-      console.warn('⚠️ WARNING: You are connecting to Neon DB without connection pooling (?pgbouncer=true). This will lead to connection exhaustion under load.');
+      console.warn('⚠️ WARNING: You are connecting to Neon DB without connection pooling (?pgbouncer=true). Auto-enabling pgbouncer=true in connection string.');
     }
     // Create tables if they do not exist
     await pool.query(`
