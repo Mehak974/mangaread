@@ -82,6 +82,10 @@ export default function BrowseContent({ initialData, initialParams }) {
 
   // Fetch manga on filter or page changes
   useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+    let cancelled = false;
+    const run = async () => {
     if (isInitialMount.current && initialData?.media?.length > 0) {
       isInitialMount.current = false;
       return;
@@ -193,6 +197,11 @@ export default function BrowseContent({ initialData, initialParams }) {
       }
     }
     setLoading(false);
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
   }, [page, sort, status, activeGenre, year, rating, country, searchQuery, perPage]);
 
   const handleGenreTagClick = (g) => {
