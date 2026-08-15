@@ -141,6 +141,34 @@ const limiter = rateLimit(15 * 60 * 1000, 200);
 
 const anilistCache = new NodeCache({ stdTTL: 86400, checkperiod: 3600 }); // Cache for 24 hours
 
+const ANILIST_DIRECT = 'https://graphql.anilist.co';
+const ANILIST_PROXIES = [
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://thingproxy.freeboard.io/fetch/${url}`,
+];
+
+async function anilistRequest(query, variables = {}) {
+  const body = { query, variables };
+  const headers = { 'Content-Type': 'application/json', Accept: 'application/json', 'User-Agent': 'MangaReader/1.0 (+https://www.mangaread.pro)' };
+
+  try {
+    const r = await axios.post(ANILIST_DIRECT, body, { headers, timeout: 10000 });
+    return r.data;
+  } catch (directErr) {
+    if (directErr.response) throw directErr;
+    for (const proxyFn of ANILIST_PROXIES) {
+      try {
+        const proxyUrl = proxyFn(`${ANILIST_DIRECT}?query=${encodeURIComponent(query)}&variables=${encodeURIComponent(JSON.stringify(variables))}`);
+        const r = await axios.get(proxyUrl, { headers, timeout: 15000 });
+        return r.data;
+      } catch (proxyErr) {
+        continue;
+      }
+    }
+    throw directErr;
+  }
+}
+
 app.post('/api/anilist', rateLimit(60000, 30), async (req, res) => {
   try {
     const cacheKey = crypto.createHash('md5').update(JSON.stringify(req.body)).digest('hex');
@@ -148,9 +176,9 @@ app.post('/api/anilist', rateLimit(60000, 30), async (req, res) => {
     if (cachedData) {
       return res.json(cachedData);
     }
-    const r = await axios.post('https://graphql.anilist.co', req.body, { headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'User-Agent': 'MangaReader/1.0 (+https://www.mangareader.pro)' }, timeout: 10000 });
-    anilistCache.set(cacheKey, r.data);
-    res.json(r.data);
+    const data = await anilistRequest(req.body.query, req.body.variables || {});
+    anilistCache.set(cacheKey, data);
+    res.json(data);
   } catch (err) {
     if (err.response) res.status(err.response.status).json(err.response.data);
     else res.status(500).json({ error: err.message });
