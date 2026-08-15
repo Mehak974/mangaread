@@ -2,7 +2,7 @@
 
 import React, { use, useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { fetchAnilist, getMangaList, isExplicitNSFW } from "@/utils/anilist";
 import { slugify } from "@/utils/slugify";
@@ -55,7 +55,8 @@ const sourceLabel = (id) => AVAILABLE_SOURCES.find((s) => s.id === id)?.name || 
 
 export default function MangaDetail({ params }) {
   const router = useRouter();
-  const { title: titleSlug } = use(params);
+  const pathname = usePathname();
+  const titleSlug = pathname.split('/').pop() || '';
   const {
     isBookmarked,
     toggleBookmark,
