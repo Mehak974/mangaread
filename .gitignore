@@ -1,0 +1,28 @@
+node_modules/
+.env
+.env.local
+.env.production
+*.log
+.DS_Store
+.next/
+dist/
+build/
+.vercel/
+tsconfig.tsbuildinfo
+
+# Editor/agent session artifacts
+step*.txt
+*_history.txt
+fix_all.js
+.agents/
+
+# Temporary utility/debug scripts
+backend/test*.js
+backend/check-*.js
+backend/backfill-*.js
+backend/fix-*.js
+backend/count-*.js
+remove_ads.js
+fix_reader.js
+add_search.js
+fix_manga.js
