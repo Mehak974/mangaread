@@ -496,9 +496,13 @@ function detectSource(url) {
 // ── MANGA API (preserved + secured) ──────────────────────────────────────────
 app.get('/api/manga/map', rateLimit(60000,30), async (req,res)=>{
   const title=san(req.query.title,200);
+  const frontendMangaId = san(req.query.mangaId, 100);
   if(!title) return res.status(400).json({error:'title required'});
   try {
-    const mangaId=await getOrFetchMangaMetadata(title);
+    let mangaId = frontendMangaId;
+    if (!mangaId) {
+      mangaId = await getOrFetchMangaMetadata(title);
+    }
     const mData = (await db.query('SELECT country, preferred_source_id, preferred_source_slug, last_source_check FROM manga WHERE id=$1',[mangaId])).rows[0];
     
     // Helper to scrape and cache a single source
@@ -591,9 +595,13 @@ app.get('/api/manga/map', rateLimit(60000,30), async (req,res)=>{
 
 app.get('/api/manga/source-chapters',rateLimit(60000,20),async(req,res)=>{
   const{title,source:sid}=req.query;
+  const frontendMangaId = san(req.query.mangaId, 100);
   if(!title||!sid)return res.status(400).json({error:'title and source required'});
   try{
-    const mangaId=await getOrFetchMangaMetadata(san(title,200));
+    let mangaId = frontendMangaId;
+    if (!mangaId) {
+      mangaId = await getOrFetchMangaMetadata(san(title,200));
+    }
     const cached = (await db.query('SELECT chapters, fetched_at FROM chapters_cache WHERE manga_id=$1 AND source_id=$2',[mangaId,sid])).rows[0];
     const mr=(await db.query('SELECT source_slug FROM source_mappings WHERE manga_id=$1 AND source_id=$2',[mangaId,san(sid,50)])).rows;
     let url=mr.length?mr[0].source_slug:null;
