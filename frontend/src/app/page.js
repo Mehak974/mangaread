@@ -89,36 +89,11 @@ export default async function Home() {
   let finalPopularOverall = popularOverall.slice(0, 12);
   const finalRecentlyAdded = recentlyAdded.slice(0, 10);
 
-  const fallbackHero1 = {
-    id: "fallback-solo-leveling",
-    t: "Solo Leveling",
-    title: "Solo Leveling",
-    cover: "https://i.pinimg.com/1200x/f5/ac/5b/f5ac5b72f1a1acd032f165e8e2ed9706.jpg",
-    rating: 9.8,
-    ch: "Ch 200",
-    ongoing: false,
-  };
-  const fallbackHero2 = {
-    id: "fallback-one-piece",
-    t: "One Piece",
-    title: "One Piece",
-    cover: "https://i.pinimg.com/736x/15/26/bb/1526bb11c465be3119bb71279f4e750b.jpg",
-    rating: 9.9,
-    ch: "Ch 1100",
-    ongoing: true,
-  };
-
-  const emergencyFallbacks = [fallbackHero1, fallbackHero2, ...finalRecentlyAdded];
-
-  if (finalPopularNow.length === 0) finalPopularNow = emergencyFallbacks.slice(0, 9);
-  if (finalTrending.length === 0) finalTrending = emergencyFallbacks.slice(0, 12);
-  if (finalPopularOverall.length === 0) finalPopularOverall = emergencyFallbacks.slice(0, 12);
-
-  const featuredHero = finalPopularNow[0];
-  const desktopHero = fallbackHero1; // Force Action Manhwa (Solo Leveling)
-
   const allScheduleItems = [...finalPopularNow, ...finalTrending, ...finalPopularOverall, ...finalRecentlyAdded];
   const uniqueScheduleItems = Array.from(new Map(allScheduleItems.map(item => [item.id, item])).values());
+
+  const featuredHero = finalPopularNow[0];
+  const desktopHero = featuredHero;
 
   // Preload the LCP hero image so the browser starts fetching it as early as possible
   const heroImageUrl = featuredHero?.cover ? proxyImage(featuredHero.cover, 400) : null;

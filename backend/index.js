@@ -50,11 +50,19 @@ app.use((req, res, next) => {
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(',').map(s => s.trim());
+
+function isOriginAllowed(origin) {
+  if (!origin) return true;
+  if (ALLOWED_ORIGINS.includes('*')) return true;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (origin.endsWith('.vercel.app')) return true;
+  if (origin.endsWith('.railway.app')) return true;
+  return false;
+}
+
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin) return cb(null, true);
-    if (ALLOWED_ORIGINS.includes('*')) return cb(null, true);
-    if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    if (isOriginAllowed(origin)) return cb(null, true);
     cb(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -617,7 +625,9 @@ app.get('/api/home',rateLimit(60000,30),async(req,res)=>{
     }catch(err){return{sourceId:s.id,items:[],error:err.message};}
   }));
   const sections=results.map(r=>r.status==='fulfilled'?r.value:{items:[],error:r.reason?.message});
-  await setCached('home',sections);res.json({data:sections,cached:false});
+  const hasData = sections.some(s => s.items && s.items.length > 0);
+  if (hasData) await setCached('home',sections);
+  res.json({data:sections,cached:false});
 });
 
 app.get('/api/manga',async(req,res)=>{
