@@ -500,10 +500,33 @@ app.get('/api/manga/map', rateLimit(60000,30), async (req,res)=>{
   if(!title) return res.status(400).json({error:'title required'});
   try {
     let mangaId = frontendMangaId;
+    let resolvedFromTitle = false;
     if (!mangaId) {
       mangaId = await getOrFetchMangaMetadata(title);
+      resolvedFromTitle = true;
+    } else {
+      const numericId = parseInt(mangaId, 10);
+      if (!isNaN(numericId) && !mangaId.startsWith('anilist-') && !mangaId.startsWith('mal-') && !mangaId.startsWith('local-')) {
+        mangaId = `anilist-${numericId}`;
+      }
     }
     const mData = (await db.query('SELECT country, preferred_source_id, preferred_source_slug, last_source_check FROM manga WHERE id=$1',[mangaId])).rows[0];
+    
+    if (!mData) {
+      if (!resolvedFromTitle) {
+        try {
+          mangaId = await getOrFetchMangaMetadata(title);
+          resolvedFromTitle = true;
+          const mDataRetry = (await db.query('SELECT country, preferred_source_id, preferred_source_slug, last_source_check FROM manga WHERE id=$1',[mangaId])).rows[0];
+          if (mDataRetry) Object.assign(mData, mDataRetry);
+        } catch (e) {
+          console.warn('Failed to resolve manga by title fallback:', e.message);
+        }
+      }
+      if (!mData) {
+        return res.status(404).json({error:'Manga not found in database'});
+      }
+    }
     
     // Helper to scrape and cache a single source
     async function scrapeAndCache(m){
