@@ -226,6 +226,23 @@ const [chPage, setChPage] = useState(1);
                 } catch (e) {}
               }, 12000);
             }
+          } else {
+            // /api/manga/map failed — try sources one by one as fallback
+            const sourceIds = AVAILABLE_SOURCES.map(s => s.id);
+            for (const sid of sourceIds) {
+              try {
+                const fallbackRes = await fetch(`${apiBase}/api/manga/source-chapters?title=${encodeURIComponent(normalizedManga.title)}&source=${sid}`);
+                if (fallbackRes.ok) {
+                  const fallbackData = await fallbackRes.json();
+                  if (fallbackData.data && fallbackData.data.chapters?.length > 0) {
+                    setChapters(fallbackData.data.chapters);
+                    setSourceId(fallbackData.data.sourceId || sid);
+                    setSourceUrl(fallbackData.data.url || "");
+                    break;
+                  }
+                }
+              } catch (e) { continue; }
+            }
           }
         } catch (mapErr) {
           console.warn("Failed to dynamically map title to sources:", mapErr.message);
@@ -262,13 +279,40 @@ const [chPage, setChPage] = useState(1);
         setChapters([]);
         setSourceId(newSourceId);
         setSourceUrl("");
+        const found = await tryNextSource(newSourceId);
+        if (!found) {
+          console.warn(`No chapters found on any source for "${manga.title}"`);
+        }
       }
     } catch (err) {
       console.warn("Failed to switch source:", err.message);
       setChapters([]);
+      await tryNextSource(newSourceId);
     } finally {
       setLoadingChapters(false);
     }
+  };
+
+  const tryNextSource = async (failedSourceId) => {
+    const sourceIds = AVAILABLE_SOURCES.map(s => s.id).filter(id => id !== failedSourceId);
+    for (const sid of sourceIds) {
+      try {
+        const res = await fetch(`${apiBase}/api/manga/source-chapters?title=${encodeURIComponent(manga.title)}&source=${sid}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.data && data.data.chapters?.length > 0) {
+            localStorage.setItem(`preferred_source_${mangaId}`, sid);
+            setChapters(data.data.chapters);
+            setSourceId(data.data.sourceId || sid);
+            setSourceUrl(data.data.url || "");
+            return true;
+          }
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+    return false;
   };
 
   if (loading) {

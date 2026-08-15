@@ -72,11 +72,16 @@ async function fetchFromAnilist(searchQuery, id = null, retries = 3, delay = 200
 
       if (response.data && response.data.errors) {
         const has429 = response.data.errors.some(e => e.status === 429 || e.message.includes('Too Many Requests'));
+        const isDisabled = response.data.errors.some(e => e.message.includes('temporarily disabled'));
         if (has429) {
           const waitTime = delay * Math.pow(2, i);
           console.warn(`AniList Backend Rate Limit (429) hit. Waiting ${waitTime}ms before retry...`);
           await new Promise(resolve => setTimeout(resolve, waitTime));
           continue;
+        }
+        if (isDisabled) {
+          console.warn('AniList temporarily disabled, skipping retries.');
+          return null;
         }
       }
 
@@ -89,6 +94,10 @@ async function fetchFromAnilist(searchQuery, id = null, retries = 3, delay = 200
         console.warn(`AniList Backend Rate Limit (429) status hit. Waiting ${waitTime}ms before retry...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         continue;
+      }
+      if (err.response && err.response.status === 403) {
+        console.warn('AniList returned 403, skipping retries.');
+        return null;
       }
       if (i === retries - 1) {
         console.warn('AniList metadata fetch failed after retries:', err.message);
