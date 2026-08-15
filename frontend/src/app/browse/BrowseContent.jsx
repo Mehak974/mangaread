@@ -142,7 +142,18 @@ export default function BrowseContent({ initialData, initialParams }) {
       try {
         const backendRes = await fetch(`${API_BASE}/api/manga/search?${params.toString()}`);
         if (backendRes.ok) {
-          const backendData = await backendRes.json();
+          let backendData;
+          try {
+            const text = await backendRes.text();
+            console.log('[Browse fallback] raw response:', text.substring(0, 200));
+            backendData = JSON.parse(text);
+          } catch (jsonErr) {
+            console.warn("Backend returned non-JSON response:", jsonErr.message);
+            setMangaList([]);
+            setPageInfo({ currentPage: page, lastPage: 1, hasNextPage: false, total: 0 });
+            setError(null);
+            return;
+          }
           if (backendData.data?.length > 0) {
             const mapped = backendData.data.map(row => ({
               id: row.id,
@@ -175,7 +186,7 @@ export default function BrowseContent({ initialData, initialParams }) {
           setError("Failed to fetch results");
         }
       } catch (e) {
-        console.warn("Backend search fallback failed:", e.message);
+        console.warn("Backend search fallback failed:", e);
         setMangaList([]);
         setPageInfo({ currentPage: page, lastPage: 1, hasNextPage: false, total: 0 });
         setError("Failed to fetch results");
