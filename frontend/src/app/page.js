@@ -20,8 +20,6 @@ export const revalidate = 43200; // Revalidate every 12 hours (ISR) — balances
 // Server components can be async
 export default async function Home() {
   // ── Critical path: fetch AniList data first (determines the hero image / LCP) ──
-  // These are fetched in parallel. The backend /api/home fetch is deliberately
-  // NOT in this Promise.all so a slow backend can't delay the hero image.
   const [popularNowRes, trendingRes, popularOverallRes] = await Promise.all([
     getMangaList({ perPage: 12, genre: "Fantasy", countryOfOrigin: "KR", sort: ["POPULARITY_DESC"] }),
     getMangaList({ perPage: 16, sort: ["TRENDING_DESC"] }),
@@ -41,9 +39,6 @@ export default async function Home() {
     : [];
 
   // ── Non-critical: backend fetch for Recently Added (below the fold on mobile) ──
-  // Use Promise.race with a 500 ms timeout so a slow backend can't delay
-  // the initial page paint. If it doesn't resolve in 500 ms, fall back to
-  // AniList "newest" results for the Recently Added section.
   const backendPromise = fetch(`${apiBase}/api/home`)
     .then(r => r.json())
     .catch(() => ({ data: [] }));
@@ -84,6 +79,48 @@ export default async function Home() {
     const uniqueFallback = fallbackMedia.filter(m => !existingTitles.has((m.t || m.title || "").toLowerCase()));
     recentlyAdded = [...recentlyAdded, ...uniqueFallback].slice(0, 20);
   }
+
+  // ── Resilience: if AniList is down, use backend scraper data for ALL sections ──
+  const hasAnilistData = popularNow.length > 0 || trending.length > 0 || popularOverall.length > 0;
+
+  if (!hasAnilistData && recentRes?.data && recentRes.data.length > 0) {
+    const backendItems = [];
+    for (const section of recentRes.data) {
+      if (section.items && section.items.length > 0) {
+        backendItems.push(...section.items.map(item => ({ ...item, sourceId: section.sourceId })));
+      }
+    }
+
+    const shuffled = backendItems.sort(() => Math.random() - 0.5);
+
+    popularNow = shuffled.slice(0, 9).map(m => ({
+      id: m.href || m.title,
+      t: m.title,
+      cover: m.cover,
+      ch: m.chapter || 'Ch 1',
+      g: 'Ongoing',
+      hot: true
+    }));
+
+    trending = shuffled.slice(0, 12).map(m => ({
+      id: m.href || m.title,
+      t: m.title,
+      cover: m.cover,
+      ch: m.chapter || 'Ch 1',
+      g: 'Ongoing',
+      hot: true
+    }));
+
+    popularOverall = shuffled.slice(0, 12).map(m => ({
+      id: m.href || m.title,
+      t: m.title,
+      cover: m.cover,
+      ch: m.chapter || 'Ch 1',
+      g: 'Ongoing',
+      hot: true
+    }));
+  }
+
   let finalPopularNow = popularNow.slice(0, 9);
   let finalTrending = trending.slice(0, 12);
   let finalPopularOverall = popularOverall.slice(0, 12);
