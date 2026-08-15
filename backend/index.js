@@ -613,7 +613,11 @@ app.get('/api/manga/map', rateLimit(60000,30), async (req,res)=>{
     await db.query('UPDATE manga SET preferred_source_id=$1, preferred_source_slug=$2, last_source_check=NOW() WHERE id=$3', [sel.sourceId, sel.url, mangaId]);
 
     res.json({data:{sourceId:sel.sourceId,url:sel.url,title:sel.detail?.title,cover:sel.detail?.cover,description:sel.detail?.description,status:sel.detail?.status,genres:sel.detail?.genres,chapters:sel.detail.chapters}});
-  }catch(err){console.error('Mapping failed:',err.message);res.status(500).json({error:err.message});}
+  }catch(err){
+    console.error('Mapping failed:', err.message);
+    console.error(err.stack);
+    res.status(500).json({error: err.message || 'Internal server error'});
+  }
 });
 
 app.get('/api/manga/source-chapters',rateLimit(60000,20),async(req,res)=>{
