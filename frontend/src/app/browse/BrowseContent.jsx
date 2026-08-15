@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { getMangaList, isExplicitNSFW } from "@/utils/anilist";
+import { API_BASE } from "@/utils/api";
 import MangaCard from "@/components/MangaCard";
 import MangaSkeleton from "@/components/MangaSkeleton";
 import Footer from "@/components/Footer";
@@ -114,25 +115,73 @@ export default function BrowseContent({ initialData, initialParams }) {
     }
 
     setLoading(true);
-    getMangaList(fetchVariables)
-      .then((aniRes) => {
-        if (aniRes.media && aniRes.media.length > 0) {
-          setMangaList(applyNsfwFilter(aniRes.media));
-          setPageInfo(aniRes.pageInfo);
-          setError(null);
+    let aniRes = null;
+    try {
+      aniRes = await getMangaList(fetchVariables);
+    } catch (e) {
+      console.warn("AniList fetch failed:", e.message);
+    }
+
+    if (aniRes?.media?.length > 0) {
+      setMangaList(applyNsfwFilter(aniRes.media));
+      setPageInfo(aniRes.pageInfo);
+      setError(null);
+    } else {
+      const params = new URLSearchParams();
+      if (searchQuery.trim()) params.set('q', searchQuery.trim());
+      if (activeGenre !== 'All') params.set('genre', activeGenre);
+      if (status === 'Ongoing') params.set('status', 'RELEASING');
+      else if (status === 'Completed') params.set('status', 'FINISHED');
+      if (sort === 'Top Rated') params.set('sort', 'Top Rated');
+      else if (sort === 'New Releases') params.set('sort', 'New Releases');
+      else if (sort === 'A–Z') params.set('sort', 'A–Z');
+      else params.set('sort', 'Trending');
+      params.set('limit', perPage);
+      params.set('offset', ((page - 1) * perPage).toString());
+
+      try {
+        const backendRes = await fetch(`${API_BASE}/api/manga/search?${params.toString()}`);
+        if (backendRes.ok) {
+          const backendData = await backendRes.json();
+          if (backendData.data?.length > 0) {
+            const mapped = backendData.data.map(row => ({
+              id: row.id,
+              t: row.title,
+              cover: row.cover,
+              ch: row.latest_chapter ? `Ch ${row.latest_chapter}` : 'Ch 1',
+              g: 'Ongoing',
+              hot: false,
+              rating: row.rating || 4.0,
+              ongoing: row.status === 'RELEASING',
+              genres: row.genres || [],
+              popularity: row.popularity || 0,
+            }));
+            setMangaList(applyNsfwFilter(mapped));
+            setPageInfo({
+              currentPage: page,
+              lastPage: Math.ceil((backendData.total || 0) / perPage),
+              hasNextPage: (backendData.total || 0) > page * perPage,
+              total: backendData.total || 0,
+            });
+            setError(null);
+          } else {
+            setMangaList([]);
+            setPageInfo({ currentPage: page, lastPage: 1, hasNextPage: false, total: 0 });
+            setError(null);
+          }
         } else {
           setMangaList([]);
           setPageInfo({ currentPage: page, lastPage: 1, hasNextPage: false, total: 0 });
-          setError(null);
+          setError("Failed to fetch results");
         }
-        setLoading(false);
-      })
-      .catch(() => {
+      } catch (e) {
+        console.warn("Backend search fallback failed:", e.message);
         setMangaList([]);
         setPageInfo({ currentPage: page, lastPage: 1, hasNextPage: false, total: 0 });
         setError("Failed to fetch results");
-        setLoading(false);
-      });
+      }
+    }
+    setLoading(false);
   }, [page, sort, status, activeGenre, year, rating, country, searchQuery, perPage]);
 
   const handleGenreTagClick = (g) => {
