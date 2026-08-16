@@ -623,24 +623,30 @@ app.get('/api/manga/map', rateLimit(60000,30), async (req,res)=>{
 app.get('/api/manga/source-chapters',rateLimit(60000,20),async(req,res)=>{
   const{title,source:sid}=req.query;
   const frontendMangaId = san(req.query.mangaId, 100);
+  console.log('[source-chapters] title:', title, 'source:', sid, 'frontendMangaId:', frontendMangaId);
   if(!title||!sid)return res.status(400).json({error:'title and source required'});
   try{
     let mangaId = frontendMangaId;
     if (!mangaId) {
       mangaId = await getOrFetchMangaMetadata(san(title,200));
     }
+    console.log('[source-chapters] resolved mangaId:', mangaId);
     const cached = (await db.query('SELECT chapters, fetched_at FROM chapters_cache WHERE manga_id=$1 AND source_id=$2',[mangaId,sid])).rows[0];
+    console.log('[source-chapters] cached:', cached ? 'yes' : 'no');
     const mr=(await db.query('SELECT source_slug FROM source_mappings WHERE manga_id=$1 AND source_id=$2',[mangaId,san(sid,50)])).rows;
+    console.log('[source-chapters] mappings:', mr.length);
     let url=mr.length?mr[0].source_slug:null;
     if(cached && (Date.now() - new Date(cached.fetched_at).getTime()) < 6*3600000 && cached.chapters?.length) return res.json({data:{sourceId:sid,url,chapters:cached.chapters}});
     if(!url){url=await searchSource(sid,title,mangaId);
+      console.log('[source-chapters] searchSource result:', url);
       if(url)await db.query(`INSERT INTO source_mappings(manga_id,source_id,source_slug)VALUES($1,$2,$3)ON CONFLICT(manga_id,source_id)DO UPDATE SET source_slug=EXCLUDED.source_slug`,[mangaId,sid,url]);}
     if(!url)return res.status(404).json({error:`Not found on source: ${sid}`});
     const s=SOURCE_SCRAPERS[sid];if(!s)return res.status(400).json({error:`Unknown source: ${sid}`});
     const d=await s.getMangaDetail(url);
+    console.log('[source-chapters] detail chapters:', d.chapters?.length || 0);
     if(d.chapters?.length) await db.query(`INSERT INTO chapters_cache(manga_id,source_id,chapters,fetched_at)VALUES($1,$2,$3,NOW())ON CONFLICT(manga_id,source_id)DO UPDATE SET chapters=EXCLUDED.chapters,fetched_at=NOW()`,[mangaId,sid,JSON.stringify(d.chapters)]);
     res.json({data:{sourceId:sid,url,chapters:d.chapters||[]}});
-  }catch(err){res.status(500).json({error:err.message});}
+  }catch(err){console.error('[source-chapters] error:', err.message, err.stack);res.status(500).json({error:err.message});}
 });
 
 app.get('/api/manga/recent',async(req,res)=>{
