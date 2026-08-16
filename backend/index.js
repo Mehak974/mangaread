@@ -452,16 +452,16 @@ async function searchSource(sourceId,title,mangaId=null) {
 
     if (sourceId === 'mangaread') {
       const axios = require('axios');
-      const topTitlesForDirect = allTitles.slice(0, 8);
+      const topTitlesForDirect = allTitles.slice(0, 3);
       for (const t of topTitlesForDirect) {
         const slug = t.toLowerCase().replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         if (!slug || slug.length < 2) continue;
         
-        const urlsToTry = [`https://www.mangaread.org/manga/${slug}/`, `https://www.mangaread.org/manga/${slug}-manga/`];
+        const urlsToTry = [`https://www.mangaread.org/manga/${slug}/`];
 
         for (const directUrl of urlsToTry) {
           try {
-            const res = await axios.get(directUrl, { timeout: 8000, headers: { 'User-Agent': 'Mozilla/5.0' }});
+            const res = await axios.get(directUrl, { timeout: 5000, headers: { 'User-Agent': 'Mozilla/5.0' }});
             if (res.status === 200 && res.data.includes('post-title')) return directUrl;
           } catch(e) {}
         }

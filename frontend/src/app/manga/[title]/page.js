@@ -201,7 +201,7 @@ const [chPage, setChPage] = useState(1);
         setLoadingChapters(true);
         try {
           const prefSource = typeof window !== "undefined" ? localStorage.getItem(`preferred_source_${resolvedId}`) : null;
-          const mapRes = await fetch(prefSource ? `${apiBase}/api/manga/source-chapters?title=${encodeURIComponent(normalizedManga.title)}&source=${prefSource}` : `${apiBase}/api/manga/map?title=${encodeURIComponent(normalizedManga.title)}&mangaId=${encodeURIComponent(resolvedId)}`);
+          const mapRes = await fetch(prefSource ? `${apiBase}/api/manga/source-chapters?title=${encodeURIComponent(normalizedManga.title)}&source=${prefSource}&mangaId=${encodeURIComponent(resolvedId)}` : `${apiBase}/api/manga/map?title=${encodeURIComponent(normalizedManga.title)}&mangaId=${encodeURIComponent(resolvedId)}`);
           if (mapRes.ok) {
             const mapData = await mapRes.json();
             if (mapData.data) {
@@ -265,7 +265,7 @@ const [chPage, setChPage] = useState(1);
     setLoadingChapters(true);
     setChPage(1);
     try {
-      const res = await fetch(`${apiBase}/api/manga/source-chapters?title=${encodeURIComponent(manga.title)}&source=${newSourceId}`);
+      const res = await fetch(`${apiBase}/api/manga/source-chapters?title=${encodeURIComponent(manga.title)}&source=${newSourceId}&mangaId=${encodeURIComponent(mangaId)}`);
       if (res.ok) {
         const data = await res.json();
         if (data.data) {
@@ -295,7 +295,7 @@ const [chPage, setChPage] = useState(1);
     const sourceIds = AVAILABLE_SOURCES.map(s => s.id).filter(id => id !== failedSourceId);
     for (const sid of sourceIds) {
       try {
-        const res = await fetch(`${apiBase}/api/manga/source-chapters?title=${encodeURIComponent(manga.title)}&source=${sid}`);
+        const res = await fetch(`${apiBase}/api/manga/source-chapters?title=${encodeURIComponent(manga.title)}&source=${sid}&mangaId=${encodeURIComponent(mangaId)}`);
         if (res.ok) {
           const data = await res.json();
           if (data.data && data.data.chapters?.length > 0) {
