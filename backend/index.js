@@ -451,7 +451,7 @@ async function searchSource(sourceId,title,mangaId=null) {
     }
 
     if (sourceId === 'mangaread') {
-      const axios = require('axios');
+      const { fetchHTML } = require('./extractors/universalExtractor');
       const topTitlesForDirect = allTitles.slice(0, 3);
       for (const t of topTitlesForDirect) {
         const slug = t.toLowerCase().replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -461,8 +461,8 @@ async function searchSource(sourceId,title,mangaId=null) {
 
         for (const directUrl of urlsToTry) {
           try {
-            const res = await axios.get(directUrl, { timeout: 5000, headers: { 'User-Agent': 'Mozilla/5.0' }});
-            if (res.status === 200 && res.data.includes('post-title')) return directUrl;
+            const html = await fetchHTML(directUrl, { 'User-Agent': 'Mozilla/5.0' });
+            if (html.includes('post-title')) return directUrl;
           } catch(e) {}
         }
       }

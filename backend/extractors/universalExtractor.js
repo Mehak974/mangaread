@@ -24,24 +24,88 @@ const BROWSER_HEADERS = {
   'Connection': 'keep-alive',
 };
 
+const PROXY_LIST = (process.env.PROXY_LIST || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+
+let proxyIndex = 0;
+
+function getNextProxy() {
+  if (!PROXY_LIST.length) return null;
+  const proxy = PROXY_LIST[proxyIndex % PROXY_LIST.length];
+  proxyIndex++;
+  return proxy;
+}
+
+function buildAxiosConfig(proxyUrl, extraHeaders = {}) {
+  const config = {
+    headers: {
+      ...BROWSER_HEADERS,
+      ...extraHeaders,
+    },
+    timeout: 15000,
+    maxRedirects: 5,
+  };
+  if (proxyUrl) {
+    config.httpAgent = new (require('https').Agent)({ keepAlive: true });
+    config.httpsAgent = new (require('https').Agent)({ keepAlive: true });
+    config.proxy = false;
+    config.httpProxy = proxyUrl;
+    config.httpsProxy = proxyUrl;
+  }
+  return config;
+}
+
 /**
  * Fetch HTML from a URL with proper headers for the source domain
+ * Supports proxy rotation via PROXY_LIST env var (comma-separated)
  */
 async function fetchHTML(url, extraHeaders = {}) {
   const domain = new URL(url).hostname;
   const referer = REFERERS[domain] || `https://${domain}/`;
 
-  const response = await axios.get(url, {
-    headers: {
-      ...BROWSER_HEADERS,
-      Referer: referer,
-      ...extraHeaders,
-    },
-    timeout: 15000,
-    maxRedirects: 5,
-  });
+  const proxies = PROXY_LIST.length ? [...PROXY_LIST] : [null];
+  let lastError = null;
 
-  return response.data;
+  for (const proxyUrl of proxies) {
+    try {
+      const response = await axios.get(url, {
+        ...buildAxiosConfig(proxyUrl, {
+          Referer: referer,
+          ...extraHeaders,
+        }),
+      });
+      return response.data;
+    } catch (err) {
+      lastError = err;
+      continue;
+    }
+  }
+
+  throw lastError || new Error(`Failed to fetch ${url}`);
+}
+
+/**
+ * POST request with proxy rotation
+ */
+async function fetchPost(url, data, extraHeaders = {}) {
+  const proxies = PROXY_LIST.length ? [...PROXY_LIST] : [null];
+  let lastError = null;
+
+  for (const proxyUrl of proxies) {
+    try {
+      const response = await axios.post(url, data, {
+        ...buildAxiosConfig(proxyUrl, extraHeaders),
+      });
+      return response.data;
+    } catch (err) {
+      lastError = err;
+      continue;
+    }
+  }
+
+  throw lastError || new Error(`Failed to POST ${url}`);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -586,20 +650,17 @@ const SOURCE_SCRAPERS = {
 
         if (mangaId) {
           try {
-            const ajaxRes = await axios.post(
+            const ajaxRes = await fetchPost(
               'https://www.mangaread.org/wp-admin/admin-ajax.php',
               new URLSearchParams({ action: 'manga_get_chapters', manga: mangaId }).toString(),
               {
-                headers: {
-                  ...BROWSER_HEADERS,
-                  'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                  'X-Requested-With': 'XMLHttpRequest',
-                  'Referer': url,
-                },
-                timeout: 20000,
+                ...BROWSER_HEADERS,
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest',
+                Referer: url,
               }
             );
-            const $ajax = cheerio.load(ajaxRes.data);
+            const $ajax = cheerio.load(ajaxRes);
             $ajax('li.wp-manga-chapter a').each((_, el) => {
               const href = $ajax(el).attr('href') || '';
               const chTitle = $ajax(el).text().trim();
@@ -616,20 +677,17 @@ const SOURCE_SCRAPERS = {
         // Last resort: try the dedicated chapter-list AJAX endpoint used by newer Madara versions
         if (chapters.length === 0) {
           try {
-            const chapterListRes = await axios.post(
+            const chapterListRes = await fetchPost(
               `${url.replace(/\/$/, '')}/ajax/load_chapters/`,
               new URLSearchParams({ action: 'manga_get_chapters' }).toString(),
               {
-                headers: {
-                  ...BROWSER_HEADERS,
-                  'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                  'X-Requested-With': 'XMLHttpRequest',
-                  'Referer': url,
-                },
-                timeout: 20000,
+                ...BROWSER_HEADERS,
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest',
+                Referer: url,
               }
             );
-            const $ajax2 = cheerio.load(chapterListRes.data);
+            const $ajax2 = cheerio.load(chapterListRes);
             $ajax2('li.wp-manga-chapter a').each((_, el) => {
               const href = $ajax2(el).attr('href') || '';
               const chTitle = $ajax2(el).text().trim();
