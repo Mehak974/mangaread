@@ -78,6 +78,7 @@ export default function RootLayout({ children }) {
         )}
         <meta name="6a97888e-site-verification" content="96070b758f3aa1bd8cc49f6ef180d595" />
         <meta name="7A3B9K2" content="7A3B9K2" />
+        <meta name="7c8a998a62de0e024a2f266d4fd42d7bf35add3e" content="7c8a998a62de0e024a2f266d4fd42d7bf35add3e" />
       </head>
       <body className={`${dmSans.className} dark bg-bg`} suppressHydrationWarning>
         <JsonLd data={organizationSchema()} />
