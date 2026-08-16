@@ -1,22 +1,24 @@
 import { prisma } from "@/lib/prisma";
 import { SITE_URL } from "@/lib/seo";
+import { headers } from "next/headers";
 
-/**
- * Dynamic sitemap.
- *
- * Lists the public, indexable surface of the site: static marketing/app routes
- * plus every PUBLISHED article. Private and auth-gated routes (/admin, /login,
- * /signup, /settings, /profile) are deliberately excluded — they are also
- * disallowed in robots.js.
- *
- * This is a special Route Handler. Because it reads from the database it opts
- * into dynamic rendering rather than being cached at build time.
- */
+function getSiteUrl() {
+  const host = process.env.NEXT_PUBLIC_SITE_URL || "";
+  if (host && !host.includes("localhost") && !host.includes("127.0.0.1")) {
+    return host.replace(/\/+$/, "");
+  }
+  try {
+    const h = headers();
+    const hostHeader = h.get("x-forwarded-host") || h.get("host") || "";
+    const proto = h.get("x-forwarded-proto") || "https";
+    return hostHeader ? `${proto}://${hostHeader}` : host.replace(/\/+$/, "");
+  } catch {
+    return host.replace(/\/+$/, "");
+  }
+}
+
 export const dynamic = "force-dynamic";
 
-// `/library` and `/history` are intentionally NOT listed here: they render
-// per-user data behind client-side auth state and have no unique indexable
-// content for an anonymous crawler. They're also disallowed in robots.js.
 const STATIC_ROUTES = [
   { path: "/", changeFrequency: "daily", priority: 1, lastModified: "2026-07-01" },
   { path: "/browse", changeFrequency: "daily", priority: 0.9, lastModified: "2026-07-01" },
@@ -28,6 +30,7 @@ const STATIC_ROUTES = [
 ];
 
 export default async function sitemap() {
+  const SITE_URL = getSiteUrl();
   // Bump each route's `lastModified` string above when that page's content
   // actually changes, rather than stamping every route with the request
   // time. An always-"now" lastmod tells crawlers nothing and can suppress
