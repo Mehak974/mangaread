@@ -518,7 +518,7 @@ app.get('/api/manga/map', rateLimit(60000,30), async (req,res)=>{
           mangaId = await getOrFetchMangaMetadata(title);
           resolvedFromTitle = true;
           const mDataRetry = (await db.query('SELECT country, preferred_source_id, preferred_source_slug, last_source_check FROM manga WHERE id=$1',[mangaId])).rows[0];
-          if (mDataRetry) Object.assign(mData, mDataRetry);
+          if (mDataRetry) mData = mDataRetry;
         } catch (e) {
           console.warn('Failed to resolve manga by title fallback:', e.message);
         }
