@@ -10,7 +10,11 @@ export async function fetchAnilist(query, variables = {}, retries = 3, delay = 1
 
       const res = await fetch(ANILIST_DIRECT, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "User-Agent": "MangaReader/1.0 (+https://mangaread.pro)",
+        },
         body: JSON.stringify({ query, variables }),
         signal: controller.signal,
       });

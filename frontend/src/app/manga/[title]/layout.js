@@ -48,7 +48,11 @@ async function findManga(titleSlug) {
   try {
     const res = await fetch(ANILIST_ENDPOINT, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "User-Agent": "MangaReader/1.0 (+https://mangaread.pro)",
+      },
       body: JSON.stringify({ query: SEARCH_QUERY, variables: { search: searchTitle } }),
       // Metadata should be fast; don't let a slow AniList response hold up the page.
       next: { revalidate: 86400 },
