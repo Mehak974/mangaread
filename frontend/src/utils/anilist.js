@@ -1,36 +1,17 @@
 import { API_BASE } from "./api";
 
-const isServer = typeof window === 'undefined';
-
 export async function fetchAnilist(query, variables = {}, retries = 3, delay = 1500) {
   for (let i = 0; i < retries; i++) {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-      // Server components call AniList directly (no CORS on server).
-      // Client components go through the backend proxy to avoid CORS.
-      // Note: we use a direct fetch (not fetchApi) here because the backend's
-      // doubleCsrfProtection middleware is registered AFTER the /api/anilist
-      // route, so CSRF is not enforced on this endpoint. Using fetchApi would
-      // add a wasteful CSRF-token round-trip on every AniList request.
-      let res;
-      if (isServer) {
-        res = await fetch('https://graphql.anilist.co', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({ query, variables }),
-          signal: controller.signal,
-          next: { revalidate: 86400 },
-        });
-      } else {
-        res = await fetch(`${API_BASE}/api/anilist`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({ query, variables }),
-          signal: controller.signal,
-        });
-      }
+      const res = await fetch(`${API_BASE}/api/anilist`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ query, variables }),
+        signal: controller.signal,
+      });
       clearTimeout(timeoutId);
       if (res.status === 429) {
         const retryAfter = res.headers.get("Retry-After");
@@ -146,29 +127,22 @@ export async function getMangaList(variables) {
     try {
       let malData = null;
 
-      if (isServer) {
-        // Server components: fetch directly from MAL (no CORS issues)
-        const malClientId = process.env.MAL_CLIENT_ID;
-        if (!malClientId) {
-          console.warn("MAL_CLIENT_ID not set on server, skipping MAL fallback.");
-          return { pageInfo: { total: 0, currentPage: 1, lastPage: 1, hasNextPage: false, perPage: 10 }, media: [] };
-        }
-        let directUrl = '';
-        if (variables.search) {
-          directUrl = `https://api.myanimelist.net/v2/manga?q=${encodeURIComponent(variables.search)}&limit=${limit}&fields=id,title,main_picture,mean,num_chapters,status,genres`;
-        } else {
-          let rankingType = 'all';
-          if (variables.sort?.includes('TRENDING_DESC') || variables.sort?.includes('POPULARITY_DESC')) rankingType = 'bypopularity';
-          if (variables.sort?.includes('SCORE_DESC')) rankingType = 'all'; 
-          directUrl = `https://api.myanimelist.net/v2/manga/ranking?ranking_type=${rankingType}&limit=${limit}&fields=id,title,main_picture,mean,num_chapters,status,genres`;
-        }
-        const malRes = await fetch(directUrl, { headers: { 'X-MAL-CLIENT-ID': malClientId } });
-        if (malRes.ok) malData = await malRes.json();
-      } else {
-        // Client components: fetch via our Next.js API proxy to avoid CORS
-        const malRes = await fetch(malUrl);
-        if (malRes.ok) malData = await malRes.json();
+      const malClientId = process.env.MAL_CLIENT_ID;
+      if (!malClientId) {
+        console.warn("MAL_CLIENT_ID not set, skipping MAL fallback.");
+        return { pageInfo: { total: 0, currentPage: 1, lastPage: 1, hasNextPage: false, perPage: 10 }, media: [] };
       }
+      let directUrl = '';
+      if (variables.search) {
+        directUrl = `https://api.myanimelist.net/v2/manga?q=${encodeURIComponent(variables.search)}&limit=${limit}&fields=id,title,main_picture,mean,num_chapters,status,genres`;
+      } else {
+        let rankingType = 'all';
+        if (variables.sort?.includes('TRENDING_DESC') || variables.sort?.includes('POPULARITY_DESC')) rankingType = 'bypopularity';
+        if (variables.sort?.includes('SCORE_DESC')) rankingType = 'all'; 
+        directUrl = `https://api.myanimelist.net/v2/manga/ranking?ranking_type=${rankingType}&limit=${limit}&fields=id,title,main_picture,mean,num_chapters,status,genres`;
+      }
+      const malRes = await fetch(directUrl, { headers: { 'X-MAL-CLIENT-ID': malClientId } });
+      if (malRes.ok) malData = await malRes.json();
 
       if (malData) {
         const items = malData.data || [];
