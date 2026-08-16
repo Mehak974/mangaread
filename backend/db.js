@@ -52,6 +52,9 @@ async function initDB() {
         total_chapters INTEGER,
         anilist_id VARCHAR(255),
         mal_id VARCHAR(255),
+        preferred_source_id VARCHAR(100),
+        preferred_source_slug TEXT,
+        last_source_check TIMESTAMP WITH TIME ZONE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -191,6 +194,10 @@ async function initDB() {
       CREATE INDEX IF NOT EXISTS idx_manga_title ON manga(title);
       CREATE INDEX IF NOT EXISTS idx_chapters_manga_id ON chapters(manga_id);
       CREATE INDEX IF NOT EXISTS idx_chapters_release_time ON chapters(release_time DESC);
+
+      ALTER TABLE manga ADD COLUMN IF NOT EXISTS preferred_source_id VARCHAR(100);
+      ALTER TABLE manga ADD COLUMN IF NOT EXISTS preferred_source_slug TEXT;
+      ALTER TABLE manga ADD COLUMN IF NOT EXISTS last_source_check TIMESTAMP WITH TIME ZONE;
     `);
     console.log('PostgreSQL database schemas initialized successfully.');
   } catch (err) {

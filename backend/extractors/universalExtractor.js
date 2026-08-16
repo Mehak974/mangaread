@@ -549,13 +549,13 @@ const SOURCE_SCRAPERS = {
     async getMangaDetail(url) {
       // Guard: if a bare slug was stored, build the full URL
       if (!url.startsWith('http')) {
-        url = `https://www.mangaread.org/manga/${url.replace(/^\/+|\/+$/g, '')}/`;
+        url = `https://www.mangaread.org/manga/${url.replace(/^\/+|\/+$/g, '')}`;
       }
       const html = await fetchHTML(url);
       const $ = cheerio.load(html);
 
-      const title = $('h1.post-title, .manga-title, h1').first().text().trim();
-      const cover = $('.summary_image img').attr('data-src') || $('.summary_image img').attr('src') || '';
+      const title = $('h1.post-title, .manga-title, .entry-title').first().text().trim();
+      const cover = $('.summary_image img').attr('data-src') || $('.summary_image img').attr('src') || $('.manga-thumb img').attr('data-src') || $('.manga-thumb img').attr('src') || '';
       const description = $('.summary__content p, .description-summary p').first().text().trim() || $('.summary__content').first().text().trim();
       const status = $('.post-content_item:contains("Status") .summary-content').text().trim();
       const genres = [];
