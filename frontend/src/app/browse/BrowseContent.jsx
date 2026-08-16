@@ -84,119 +84,117 @@ export default function BrowseContent({ initialData, initialParams }) {
   useEffect(() => {
     let cancelled = false;
     const run = async () => {
-    let cancelled = false;
-    const run = async () => {
-    if (isInitialMount.current && initialData?.media?.length > 0) {
+      if (isInitialMount.current && initialData?.media?.length > 0) {
+        isInitialMount.current = false;
+        return;
+      }
       isInitialMount.current = false;
-      return;
-    }
-    isInitialMount.current = false;
 
-    let activeSort = ["TRENDING_DESC", "POPULARITY_DESC"];
-    if (sort === "Top Rated") activeSort = ["SCORE_DESC", "POPULARITY_DESC"];
-    else if (sort === "New Releases") activeSort = ["ID_DESC"];
-    else if (sort === "A–Z") activeSort = ["TITLE_ROMAJI"];
+      let activeSort = ["TRENDING_DESC", "POPULARITY_DESC"];
+      if (sort === "Top Rated") activeSort = ["SCORE_DESC", "POPULARITY_DESC"];
+      else if (sort === "New Releases") activeSort = ["ID_DESC"];
+      else if (sort === "A–Z") activeSort = ["TITLE_ROMAJI"];
 
-    let activeStatus = undefined;
-    if (status === "Ongoing") activeStatus = "RELEASING";
-    else if (status === "Completed") activeStatus = "FINISHED";
+      let activeStatus = undefined;
+      if (status === "Ongoing") activeStatus = "RELEASING";
+      else if (status === "Completed") activeStatus = "FINISHED";
 
-    const fetchVariables = {
-      page,
-      perPage,
-      sort: activeSort,
-      status: activeStatus,
-    };
-    if (activeGenre !== "All") fetchVariables.genre = activeGenre;
-    if (searchQuery.trim()) fetchVariables.search = searchQuery.trim();
-    if (country !== "All") fetchVariables.countryOfOrigin = country;
-    if (year !== "All") {
-      fetchVariables.startDate_greater = parseInt(`${year}0000`);
-      fetchVariables.startDate_lesser = parseInt(`${year}1232`);
-    }
-    if (rating !== "All") {
-      fetchVariables.averageScore_greater = parseInt(parseFloat(rating) * 20);
-    }
+      const fetchVariables = {
+        page,
+        perPage,
+        sort: activeSort,
+        status: activeStatus,
+      };
+      if (activeGenre !== "All") fetchVariables.genre = activeGenre;
+      if (searchQuery.trim()) fetchVariables.search = searchQuery.trim();
+      if (country !== "All") fetchVariables.countryOfOrigin = country;
+      if (year !== "All") {
+        fetchVariables.startDate_greater = parseInt(`${year}0000`);
+        fetchVariables.startDate_lesser = parseInt(`${year}1232`);
+      }
+      if (rating !== "All") {
+        fetchVariables.averageScore_greater = parseInt(parseFloat(rating) * 20);
+      }
 
-    setLoading(true);
-    let aniRes = null;
-    try {
-      aniRes = await getMangaList(fetchVariables);
-    } catch (e) {
-      console.warn("AniList fetch failed:", e.message);
-    }
-
-    if (aniRes?.media?.length > 0) {
-      setMangaList(applyNsfwFilter(aniRes.media));
-      setPageInfo(aniRes.pageInfo);
-      setError(null);
-    } else {
-      const params = new URLSearchParams();
-      if (searchQuery.trim()) params.set('q', searchQuery.trim());
-      if (activeGenre !== 'All') params.set('genre', activeGenre);
-      if (status === 'Ongoing') params.set('status', 'RELEASING');
-      else if (status === 'Completed') params.set('status', 'FINISHED');
-      if (sort === 'Top Rated') params.set('sort', 'Top Rated');
-      else if (sort === 'New Releases') params.set('sort', 'New Releases');
-      else if (sort === 'A–Z') params.set('sort', 'A–Z');
-      else params.set('sort', 'Trending');
-      params.set('limit', perPage);
-      params.set('offset', ((page - 1) * perPage).toString());
-
+      setLoading(true);
+      let aniRes = null;
       try {
-        const backendRes = await fetch(`${API_BASE}/api/manga/search?${params.toString()}`);
-        if (backendRes.ok) {
-          let backendData;
-          try {
-            const text = await backendRes.text();
-            console.log('[Browse fallback] raw response:', text.substring(0, 200));
-            backendData = JSON.parse(text);
-          } catch (jsonErr) {
-            console.warn("Backend returned non-JSON response:", jsonErr.message);
-            setMangaList([]);
-            setPageInfo({ currentPage: page, lastPage: 1, hasNextPage: false, total: 0 });
-            setError(null);
-            return;
-          }
-          if (backendData.data?.length > 0) {
-            const mapped = backendData.data.map(row => ({
-              id: row.id,
-              t: row.title,
-              cover: row.cover,
-              ch: row.latest_chapter ? `Ch ${row.latest_chapter}` : 'Ch 1',
-              g: 'Ongoing',
-              hot: false,
-              rating: row.rating || 4.0,
-              ongoing: row.status === 'RELEASING',
-              genres: row.genres || [],
-              popularity: row.popularity || 0,
-            }));
-            setMangaList(applyNsfwFilter(mapped));
-            setPageInfo({
-              currentPage: page,
-              lastPage: Math.ceil((backendData.total || 0) / perPage),
-              hasNextPage: (backendData.total || 0) > page * perPage,
-              total: backendData.total || 0,
-            });
-            setError(null);
+        aniRes = await getMangaList(fetchVariables);
+      } catch (e) {
+        console.warn("AniList fetch failed:", e.message);
+      }
+
+      if (aniRes?.media?.length > 0) {
+        setMangaList(applyNsfwFilter(aniRes.media));
+        setPageInfo(aniRes.pageInfo);
+        setError(null);
+      } else {
+        const params = new URLSearchParams();
+        if (searchQuery.trim()) params.set('q', searchQuery.trim());
+        if (activeGenre !== 'All') params.set('genre', activeGenre);
+        if (status === 'Ongoing') params.set('status', 'RELEASING');
+        else if (status === 'Completed') params.set('status', 'FINISHED');
+        if (sort === 'Top Rated') params.set('sort', 'Top Rated');
+        else if (sort === 'New Releases') params.set('sort', 'New Releases');
+        else if (sort === 'A–Z') params.set('sort', 'A–Z');
+        else params.set('sort', 'Trending');
+        params.set('limit', perPage);
+        params.set('offset', ((page - 1) * perPage).toString());
+
+        try {
+          const backendRes = await fetch(`${API_BASE}/api/manga/search?${params.toString()}`);
+          if (backendRes.ok) {
+            let backendData;
+            try {
+              const text = await backendRes.text();
+              console.log('[Browse fallback] raw response:', text.substring(0, 200));
+              backendData = JSON.parse(text);
+            } catch (jsonErr) {
+              console.warn("Backend returned non-JSON response:", jsonErr.message);
+              setMangaList([]);
+              setPageInfo({ currentPage: page, lastPage: 1, hasNextPage: false, total: 0 });
+              setError(null);
+              return;
+            }
+            if (backendData.data?.length > 0) {
+              const mapped = backendData.data.map(row => ({
+                id: row.id,
+                t: row.title,
+                cover: row.cover,
+                ch: row.latest_chapter ? `Ch ${row.latest_chapter}` : 'Ch 1',
+                g: 'Ongoing',
+                hot: false,
+                rating: row.rating || 4.0,
+                ongoing: row.status === 'RELEASING',
+                genres: row.genres || [],
+                popularity: row.popularity || 0,
+              }));
+              setMangaList(applyNsfwFilter(mapped));
+              setPageInfo({
+                currentPage: page,
+                lastPage: Math.ceil((backendData.total || 0) / perPage),
+                hasNextPage: (backendData.total || 0) > page * perPage,
+                total: backendData.total || 0,
+              });
+              setError(null);
+            } else {
+              setMangaList([]);
+              setPageInfo({ currentPage: page, lastPage: 1, hasNextPage: false, total: 0 });
+              setError(null);
+            }
           } else {
             setMangaList([]);
             setPageInfo({ currentPage: page, lastPage: 1, hasNextPage: false, total: 0 });
-            setError(null);
+            setError("Failed to fetch results");
           }
-        } else {
+        } catch (e) {
+          console.warn("Backend search fallback failed:", e);
           setMangaList([]);
           setPageInfo({ currentPage: page, lastPage: 1, hasNextPage: false, total: 0 });
           setError("Failed to fetch results");
         }
-      } catch (e) {
-        console.warn("Backend search fallback failed:", e);
-        setMangaList([]);
-        setPageInfo({ currentPage: page, lastPage: 1, hasNextPage: false, total: 0 });
-        setError("Failed to fetch results");
       }
-    }
-    setLoading(false);
+      setLoading(false);
     };
     run();
     return () => {
