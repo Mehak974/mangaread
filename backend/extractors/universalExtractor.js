@@ -547,9 +547,10 @@ const SOURCE_SCRAPERS = {
     },
 
     async getMangaDetail(url) {
-      // Guard: if a bare slug was stored, build the full URL
+      // Guard: if a bare slug/title was stored, build the full URL
       if (!url.startsWith('http')) {
-        url = `https://www.mangaread.org/manga/${url.replace(/^\/+|\/+$/g, '')}`;
+        const slug = url.toLowerCase().replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').replace(/--+/g, '-');
+        url = `https://www.mangaread.org/manga/${slug}`;
       }
       const html = await fetchHTML(url);
       const $ = cheerio.load(html);

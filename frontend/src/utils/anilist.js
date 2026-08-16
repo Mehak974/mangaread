@@ -34,15 +34,41 @@ export async function fetchAnilist(query, variables = {}, retries = 3, delay = 1
       return json.data;
     } catch (err) {
       if (i === retries - 1) {
-        console.warn("AniList request failed completely:", err.message);
-        return null;
+        console.warn("AniList direct request failed:", err.message);
+        return fetchAnilistViaProxy(query, variables);
       }
       const waitTime = delay * Math.pow(2, i);
-      console.warn(`Request failed: ${err.message}. Retrying in ${waitTime}ms...`);
+      console.warn(`AniList request failed: ${err.message}. Retrying in ${waitTime}ms...`);
       await new Promise((resolve) => setTimeout(resolve, waitTime));
     }
   }
   return null;
+}
+
+async function fetchAnilistViaProxy(query, variables = {}) {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const res = await fetch(`${API_BASE}/api/anilist`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ query, variables }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`AniList proxy failure: ${res.status} - ${text}`);
+    }
+    const json = await res.json();
+    return json.data;
+  } catch (err) {
+    console.warn("AniList proxy fallback failed:", err.message);
+    return null;
+  }
 }
 
 export const MANGA_QUERY = `
