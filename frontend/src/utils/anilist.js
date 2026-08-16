@@ -1,14 +1,16 @@
 import { API_BASE } from "./api";
 
+const ANILIST_DIRECT = "https://graphql.anilist.co";
+
 export async function fetchAnilist(query, variables = {}, retries = 3, delay = 1500) {
   for (let i = 0; i < retries; i++) {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-      const res = await fetch(`${API_BASE}/api/anilist`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      const res = await fetch(ANILIST_DIRECT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ query, variables }),
         signal: controller.signal,
       });

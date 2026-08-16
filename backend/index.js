@@ -457,7 +457,7 @@ async function searchSource(sourceId,title,mangaId=null) {
         const slug = t.toLowerCase().replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         if (!slug || slug.length < 2) continue;
         
-        const urlsToTry = [`https://www.mangaread.org/manga/${slug}/`];
+        const urlsToTry = [`https://www.mangaread.org/manga/${slug}`];
 
         for (const directUrl of urlsToTry) {
           try {
