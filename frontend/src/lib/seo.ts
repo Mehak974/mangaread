@@ -17,7 +17,7 @@ export const SITE_NAME = "MangaReader";
 const DEFAULT_DESCRIPTION =
   "Sync reading across devices. Bookmark chapters, track progress, discover new series — without ads.";
 
-const DEFAULT_KEYWORDS = [
+export const DEFAULT_KEYWORDS = [
   "manga",
   "manhwa",
   "manhua",
