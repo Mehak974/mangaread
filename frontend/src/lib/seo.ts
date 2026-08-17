@@ -17,6 +17,21 @@ export const SITE_NAME = "MangaReader";
 const DEFAULT_DESCRIPTION =
   "Sync reading across devices. Bookmark chapters, track progress, discover new series — without ads.";
 
+const DEFAULT_KEYWORDS = [
+  "manga",
+  "manhwa",
+  "manhua",
+  "read manga online",
+  "manga reader",
+  "free manga",
+  "manga app",
+  "webtoon",
+  "manga tracker",
+  "bookmark manga",
+  "reading list",
+  "manga discovery",
+];
+
 /** The default social share image, served from the app's public directory. */
 const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.svg`;
 
@@ -43,6 +58,8 @@ export type BuildMetadataInput = {
   image?: string;
   /** When true, instruct crawlers not to index the page. */
   noIndex?: boolean;
+  /** Optional keyword list for the page. Falls back to site defaults when omitted. */
+  keywords?: string[];
 };
 
 /**
@@ -57,6 +74,7 @@ export function buildMetadata({
   type = "website",
   image = DEFAULT_OG_IMAGE,
   noIndex = false,
+  keywords = DEFAULT_KEYWORDS,
 }: BuildMetadataInput): Metadata {
   const url = absoluteUrl(path);
   const imageUrl = absoluteUrl(image);
@@ -64,6 +82,7 @@ export function buildMetadata({
   return {
     title,
     description,
+    keywords,
     alternates: {
       canonical: url,
     },

@@ -1,4 +1,4 @@
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, DEFAULT_KEYWORDS } from "@/lib/seo";
 
 /**
  * `page.js` in this route is a client component ("use client"), so it can't
@@ -74,11 +74,11 @@ export async function generateMetadata({ params }) {
   const media = await findManga(titleSlug);
 
   if (!media) {
-    // Fall back to a still-unique-enough title rather than the site default.
     const fallbackTitle = decodeURIComponent(titleSlug).replace(/-/g, " ");
     return buildMetadata({
       title: `${fallbackTitle} — Read Online`,
       path: `/manga/${titleSlug}`,
+      keywords: [fallbackTitle, "manga", "read online", ...DEFAULT_KEYWORDS],
     });
   }
 
@@ -88,12 +88,22 @@ export async function generateMetadata({ params }) {
     ? `${rawDescription.slice(0, 155)}${rawDescription.length > 155 ? "…" : ""}`
     : `Read ${name} online — ${(media.genres || []).slice(0, 3).join(", ")}.`;
 
+  const keywords = [
+    name,
+    ...(media.genres || []).slice(0, 5),
+    "manga",
+    "read online",
+    "manga reader",
+    ...DEFAULT_KEYWORDS,
+  ];
+
   return buildMetadata({
     title: `Read ${name} Online`,
     description,
     path: `/manga/${titleSlug}`,
     type: "article",
     image: media.coverImage?.large,
+    keywords,
   });
 }
 

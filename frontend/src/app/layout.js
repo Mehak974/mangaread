@@ -25,6 +25,21 @@ const dmSans = DM_Sans({
 const DEFAULT_DESCRIPTION =
   "Read manga, manhwa, and manhua free. Sync reading across devices, bookmark chapters, track progress, and discover new series.";
 
+const DEFAULT_KEYWORDS = [
+  "manga",
+  "manhwa",
+  "manhua",
+  "read manga online",
+  "manga reader",
+  "free manga",
+  "manga app",
+  "webtoon",
+  "manga tracker",
+  "bookmark manga",
+  "reading list",
+  "manga discovery",
+];
+
 export const metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
@@ -32,6 +47,7 @@ export const metadata = {
     template: `%s · ${SITE_NAME}`,
   },
   description: DEFAULT_DESCRIPTION,
+  keywords: DEFAULT_KEYWORDS,
   applicationName: SITE_NAME,
   alternates: { canonical: "/" },
   openGraph: {
