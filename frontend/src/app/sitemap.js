@@ -17,6 +17,15 @@ function getSiteUrl() {
   }
 }
 
+function slugify(input) {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 export const dynamic = "force-dynamic";
 
 const STATIC_ROUTES = [
@@ -68,12 +77,15 @@ export default async function sitemap() {
       orderBy: { updatedAt: "desc" },
       take: 5000,
     });
-    mangaEntries = mangaList.map((m) => ({
-      url: `${SITE_URL}/manga/${m.id || m.title}`,
-      lastModified: m.updatedAt,
-      changeFrequency: "weekly",
-      priority: 0.6,
-    }));
+    mangaEntries = mangaList.map((m) => {
+      const slug = slugify(m.title || String(m.id));
+      return {
+        url: `${SITE_URL}/manga/${slug}`,
+        lastModified: m.updatedAt,
+        changeFrequency: "weekly",
+        priority: 0.6,
+      };
+    });
   } catch {
     mangaEntries = [];
   }
