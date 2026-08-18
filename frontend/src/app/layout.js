@@ -13,6 +13,7 @@ import MaintenanceGuard from "@/components/MaintenanceGuard";
 import AchievementToast from "@/components/AchievementToast";
 import PWAInstall from "@/components/PWAInstall";
 import LibraryPicker from "@/components/LibraryPicker";
+import AdScript from "@/components/AdScript";
 import { SITE_NAME, SITE_URL, organizationSchema, websiteSchema } from "@/lib/seo";
 
 const dmSans = DM_Sans({
@@ -116,6 +117,7 @@ export default function RootLayout({ children }) {
         </AppProvider>
         <Analytics />
         <SpeedInsights />
+        <AdScript />
       </body>
     </html>
   );
