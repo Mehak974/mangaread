@@ -35,6 +35,55 @@ function slugify(input) {
     .replace(/^-+|-+$/g, "");
 }
 
+const ANILIST_ENDPOINT = "https://graphql.anilist.co";
+
+/**
+ * The site is AniList-powered: manga are resolved live from AniList, not stored
+ * in our DB. So the sitemap can't read them from Postgres. Instead we pull the
+ * most popular titles straight from AniList and slugify their titles exactly
+ * like the route's layout does (slugify(title.userPreferred)), so the URLs we
+ * emit match what /manga/[title] actually resolves.
+ */
+async function fetchPopularMangaSlugs(limit = 500) {
+  const perPage = 50;
+  const pages = Math.ceil(limit / perPage);
+  const slugs = [];
+  for (let page = 1; page <= pages; page++) {
+    try {
+      const res = await fetch(ANILIST_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "User-Agent": "MangaReader/1.0 (+https://mangaread.pro)",
+        },
+        body: JSON.stringify({
+          query: `query ($page: Int, $perPage: Int) {
+            Page(page: $page, perPage: $perPage) {
+              media(sort: POPULARITY_DESC, type: MANGA) {
+                title { userPreferred }
+              }
+            }
+          }`,
+          variables: { page, perPage },
+        }),
+        next: { revalidate: 86400 },
+      });
+      if (!res.ok) break;
+      const json = await res.json();
+      const media = json?.data?.Page?.media ?? [];
+      if (media.length === 0) break;
+      for (const m of media) {
+        const slug = slugify(m.title?.userPreferred || "");
+        if (slug) slugs.push(slug);
+      }
+    } catch {
+      break;
+    }
+  }
+  return [...new Set(slugs)];
+}
+
 export const dynamic = "force-dynamic";
 
 const STATIC_ROUTES = [
@@ -78,23 +127,16 @@ export default async function sitemap() {
     articleEntries = [];
   }
 
-  // Include manga detail pages so Google can discover them
+  // Include manga detail pages so Google can discover them. The site is
+  // AniList-powered, so we source the slugs from AniList (see fetchPopularMangaSlugs).
   let mangaEntries = [];
   try {
-    const mangaList = await prisma.manga.findMany({
-      select: { id: true, title: true, updatedAt: true },
-      orderBy: { updatedAt: "desc" },
-      take: 5000,
-    });
-    mangaEntries = mangaList.map((m) => {
-      const slug = slugify(m.title || String(m.id));
-      return {
-        url: `${SITE_URL}/manga/${slug}`,
-        lastModified: m.updatedAt,
-        changeFrequency: "weekly",
-        priority: 0.6,
-      };
-    });
+    const slugs = await fetchPopularMangaSlugs(500);
+    mangaEntries = slugs.map((slug) => ({
+      url: `${SITE_URL}/manga/${slug}`,
+      changeFrequency: "weekly",
+      priority: 0.6,
+    }));
   } catch {
     mangaEntries = [];
   }
