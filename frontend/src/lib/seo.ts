@@ -9,7 +9,10 @@ import type { Metadata } from "next";
 import { env } from "@/lib/env";
 
 /** Canonical site origin, without a trailing slash. */
-export const SITE_URL = env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, "");
+const rawSiteUrl = env.NEXT_PUBLIC_SITE_URL || "";
+export const SITE_URL = /localhost|127\.0\.0\.1/.test(rawSiteUrl)
+  ? "https://mangaread.pro"
+  : rawSiteUrl.replace(/\/+$/, "");
 
 /** The public-facing site name. */
 export const SITE_NAME = "MangaReader";
