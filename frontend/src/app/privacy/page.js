@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 export const metadata = {
   title: "Privacy Policy",
   description: "Privacy Policy for MangaRead",
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {

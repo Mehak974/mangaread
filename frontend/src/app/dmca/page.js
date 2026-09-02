@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 export const metadata = {
   title: "DMCA",
   description: "Digital Millennium Copyright Act Notice",
+  alternates: { canonical: "/dmca" },
 };
 
 export default function DMCAPage() {

@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 export const metadata = {
   title: "About Us",
   description: "Learn more about our mission to bring the best manga, manhwa, and manhua to readers worldwide.",
+  alternates: { canonical: "/about" },
 };
 
 export default function AboutPage() {

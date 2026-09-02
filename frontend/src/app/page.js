@@ -5,6 +5,7 @@ import { ALL_GENRES, abbr } from "@/data/mockData";
 import { slugify } from "@/utils/slugify";
 import { getMangaList, isExplicitNSFW } from "@/utils/anilist";
 import { proxyImage } from "@/utils/api";
+import { SITE_URL, SITE_NAME, DEFAULT_DESCRIPTION, DEFAULT_KEYWORDS } from "@/lib/seo";
 import MangaCard from "@/components/MangaCard";
 import Footer from "@/components/Footer";
 import HomeGenreFilter from "@/components/HomeGenreFilter";
@@ -16,6 +17,27 @@ import TrendingPopularSection from "@/components/TrendingPopularSection";
   const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.mangaread.pro";
 
 export const revalidate = 43200; // Revalidate every 12 hours (ISR) — balances freshness vs cold-start LCP
+
+export const metadata = {
+  title: `${SITE_NAME} - Read Manga Free Online`,
+  description: DEFAULT_DESCRIPTION,
+  keywords: DEFAULT_KEYWORDS,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} - Read Manga Free Online`,
+    description: DEFAULT_DESCRIPTION,
+    images: [{ url: "/og-default.svg", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} - Read Manga Free Online`,
+    description: DEFAULT_DESCRIPTION,
+    images: ["/og-default.svg"],
+  },
+};
 
 // Server components can be async
 export default async function Home() {
@@ -149,7 +171,7 @@ export default async function Home() {
               {desktopHero.cover && (
                 <Image
                   src={proxyImage(desktopHero.cover)}
-                  alt="Hero Background"
+                  alt={`${desktopHero.t || desktopHero.title} cover art`}
                   fill
                   style={{ objectFit: "cover" }}
                   priority

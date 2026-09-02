@@ -17,7 +17,7 @@ export const SITE_URL = /localhost|127\.0\.0\.1/.test(rawSiteUrl)
 /** The public-facing site name. */
 export const SITE_NAME = "MangaReader";
 
-const DEFAULT_DESCRIPTION =
+export const DEFAULT_DESCRIPTION =
   "Sync reading across devices. Bookmark chapters, track progress, discover new series — without ads.";
 
 export const DEFAULT_KEYWORDS = [

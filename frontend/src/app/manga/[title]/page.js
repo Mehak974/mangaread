@@ -14,6 +14,7 @@ import CommentSection from "@/components/CommentSection";
 import MangaNote from "@/components/MangaNote";
 import { MANGA, abbr, COVER_GRADS } from "@/data/mockData";
 import { proxyImage } from "@/utils/api";
+import MangaPageSEO from "@/components/MangaPageSEO";
 
   const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.mangaread.pro";
 
@@ -436,6 +437,7 @@ const [chPage, setChPage] = useState(1);
 
   return (
     <div className="wt-home-container">
+      <MangaPageSEO manga={manga} titleSlug={titleSlug} genres={manga?.genres || []} />
       {/* MANGA HERO INFOS */}
       <div className="detail-hero">
         <div 

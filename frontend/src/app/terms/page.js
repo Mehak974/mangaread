@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 export const metadata = {
   title: "Terms of Service",
   description: "Terms of Service for MangaRead",
+  alternates: { canonical: "/terms" },
 };
 
 export default function TermsPage() {

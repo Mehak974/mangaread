@@ -56,7 +56,7 @@ export default function MangaCard({ manga, index }) {
         {imageUrl && (
           <Image
             src={imageUrl}
-            alt={`Cover for ${manga.t}`}
+            alt={`${manga.t || manga.title} cover art`}
             fill
             sizes="(max-width: 768px) 50vw, 230px"
             style={{ objectFit: "cover" }}
