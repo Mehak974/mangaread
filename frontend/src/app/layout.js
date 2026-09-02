@@ -14,6 +14,8 @@ import AchievementToast from "@/components/AchievementToast";
 import PWAInstall from "@/components/PWAInstall";
 import LibraryPicker from "@/components/LibraryPicker";
 import AdScript from "@/components/AdScript";
+import MobileBannerAd from "@/components/MobileBannerAd";
+import DesktopBannerAd from "@/components/DesktopBannerAd";
 import { SITE_NAME, SITE_URL, organizationSchema, websiteSchema } from "@/lib/seo";
 
 const dmSans = DM_Sans({
@@ -110,7 +112,9 @@ export default function RootLayout({ children }) {
               <Header />
               <Sidebar />
               <main>{children}</main>
+              <DesktopBannerAd />
               <MobileNav />
+              <MobileBannerAd />
               <AchievementToast />
               <PWAInstall />
               <LibraryPicker />

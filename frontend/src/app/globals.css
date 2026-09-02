@@ -800,6 +800,32 @@ body.incognito .incognito-bar {
 }
 
 /* ── MOBILE NAV ── */
+.desktop-banner-ad {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 16px auto 24px;
+  max-width: 970px;
+  min-height: 90px;
+  padding: 0 16px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.mobile-banner-ad {
+  display: none;
+  position: fixed;
+  bottom: calc(56px + max(6px, env(safe-area-inset-bottom)));
+  left: 0;
+  right: 0;
+  z-index: 199;
+  background: var(--nav-bg);
+  border-top: 1px solid var(--border);
+  min-height: 50px;
+  text-align: center;
+  overflow: hidden;
+}
+
 .mobile-nav {
   display: none;
   position: fixed;
@@ -4155,8 +4181,14 @@ body:not(.logged-in) .guest-flex {
     display: none !important
   }
 
-  .mobile-nav {
+.mobile-nav {
     display: block
+  }
+  .mobile-banner-ad {
+    display: block
+  }
+  .desktop-banner-ad {
+    display: none
   }
 
   .hero {
