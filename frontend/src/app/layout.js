@@ -97,6 +97,7 @@ export default function RootLayout({ children }) {
         <meta name="7A3B9K2" content="7A3B9K2" />
         <meta name="7c8a998a62de0e024a2f266d4fd42d7bf35add3e" content="7c8a998a62de0e024a2f266d4fd42d7bf35add3e" />
         <meta name="64232763d267d6ddcfdaba3b8b59206f6250a168" content="64232763d267d6ddcfdaba3b8b59206f6250a168" />
+        <meta name="referrer" content="no-referrer-when-downgrade" />
       </head>
       <body className={`${dmSans.className} dark bg-bg`} suppressHydrationWarning>
         <JsonLd data={organizationSchema()} />
