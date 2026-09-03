@@ -1,4 +1,5 @@
 import { DM_Sans } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
 import { Toaster } from "react-hot-toast";
@@ -13,9 +14,6 @@ import MaintenanceGuard from "@/components/MaintenanceGuard";
 import AchievementToast from "@/components/AchievementToast";
 import PWAInstall from "@/components/PWAInstall";
 import LibraryPicker from "@/components/LibraryPicker";
-import AdScript from "@/components/AdScript";
-import MobileBannerAd from "@/components/MobileBannerAd";
-import DesktopBannerAd from "@/components/DesktopBannerAd";
 import { SITE_NAME, SITE_URL, organizationSchema, websiteSchema } from "@/lib/seo";
 
 const dmSans = DM_Sans({
@@ -111,9 +109,7 @@ export default function RootLayout({ children }) {
               <Header />
               <Sidebar />
               <main>{children}</main>
-              <DesktopBannerAd />
               <MobileNav />
-              <MobileBannerAd />
               <AchievementToast />
               <PWAInstall />
               <LibraryPicker />
@@ -122,7 +118,13 @@ export default function RootLayout({ children }) {
         </AppProvider>
         <Analytics />
         <SpeedInsights />
-        <AdScript />
+        <Script
+          id="popunder"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `(function(jmwxc){var d=document,s=d.createElement('script'),l=d.scripts[d.scripts.length-1];s.settings=jmwxc||{};s.src="\\/\\/smooth-survey.com\/c.Du9t6_bT2h5\/lfSOWpQQ9QN\/zxM\/3\/OGT\/kw1TMtyu0z3OMpzzco5\/OqT\/Ud3m";s.async=true;s.referrerPolicy='no-referrer-when-downgrade';l.parentNode.insertBefore(s,l);})({})`,
+          }}
+        />
       </body>
     </html>
   );
