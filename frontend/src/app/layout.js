@@ -82,9 +82,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={dmSans.variable} suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/icon-192.png" />
-        <link rel="shortcut icon" href="/icon-192.png" />
-        <link rel="apple-touch-icon" href="/icon-192.png" />
+        <link rel="icon" href="/icon.svg" />
+        <link rel="shortcut icon" href="/icon.svg" />
+        <link rel="apple-touch-icon" href="/icon.svg" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -120,10 +120,13 @@ export default function RootLayout({ children }) {
         <SpeedInsights />
         <Script
           id="popunder"
+          src="/popunder.js"
           strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `(function(jmwxc){var d=document,s=d.createElement('script'),l=d.scripts[d.scripts.length-1];s.settings=jmwxc||{};s.src="\\/\\/smooth-survey.com\/c.Du9t6_bT2h5\/lfSOWpQQ9QN\/zxM\/3\/OGT\/kw1TMtyu0z3OMpzzco5\/OqT\/Ud3m";s.async=true;s.referrerPolicy='no-referrer-when-downgrade';l.parentNode.insertBefore(s,l);})({})`,
-          }}
+        />
+        <Script
+          id="inpush"
+          src="/inpush.js"
+          strategy="afterInteractive"
         />
       </body>
     </html>

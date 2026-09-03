@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Dark background -->
+  <rect width="512" height="512" rx="100" fill="#111111" />
+  
+  <!-- "M" (White) -->
+  <text x="170" y="320" font-family="sans-serif" font-weight="900" font-size="220" fill="#ffffff" text-anchor="middle" letter-spacing="-5">M</text>
+  
+  <!-- Accent Box for "R" -->
+  <rect x="290" y="140" width="160" height="215" rx="20" fill="#FFB300" />
+  
+  <!-- "R" (Black) -->
+  <text x="370" y="320" font-family="sans-serif" font-weight="900" font-size="220" fill="#111111" text-anchor="middle" letter-spacing="0">R</text>
+</svg>
